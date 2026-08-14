@@ -1,0 +1,21 @@
+{
+  "name": "wenzhi-plugins",
+  "description": "Wenzhi Ding 的 ZCode 插件市场",
+  "plugins": [
+    {
+      "name": "humanize",
+      "source": "./plugins/humanize",
+      "description": "每次用户发送消息时注入「说人话」要求：句子语法完整；中文回答时非专业名词不用英文。",
+      "description_i18n": {
+        "en": "Injects plain-speech rules on every user prompt: complete sentences; no jargon or translation-style Chinese.",
+        "zh-CN": "每次用户发送消息时注入「说人话」要求：句子语法完整；中文回答时非专业名词不用英文。"
+      },
+      "version": "0.2.2",
+      "author": {
+        "name": "Wenzhi Ding",
+        "url": "https://github.com/Wenzhi-Ding"
+      },
+      "keywords": ["humanize", "writing", "chinese", "prompt", "hook"]
+    }
+  ]
+}
