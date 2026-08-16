@@ -1,0 +1,16 @@
+{
+  "name": "model-providers",
+  "version": "0.1.0",
+  "description": "模型厂商 provider 配置 registry：收录各家在 ZCode 中验证过的端点、kind 与 reasoning 档位，用 /providers-sync 同步到本机 config.json。",
+  "description_i18n": {
+    "en": "Provider config registry: verified endpoints, protocol kinds, and reasoning tiers per model vendor, synced into local config.json via /providers-sync.",
+    "zh-CN": "模型厂商 provider 配置 registry：收录各家在 ZCode 中验证过的端点、kind 与 reasoning 档位，用 /providers-sync 同步到本机 config.json。"
+  },
+  "author": {
+    "name": "Wenzhi Ding",
+    "url": "https://github.com/Wenzhi-Ding"
+  },
+  "license": "MIT",
+  "keywords": ["providers", "registry", "config", "sync", "models"],
+  "commands": "commands"
+}

@@ -18,6 +18,16 @@ ZCode 插件市场。在 ZCode 的插件管理里添加本仓库即可一键安�
 
 适用场景：中文问答和写作时，抑制模型输出残句、翻译腔和 AI 套话。
 
+### model-providers
+
+各家模型厂商在 ZCode 里的正确配置（端点、协议 kind、reasoning 档位、参数怪癖）的结构化 registry。安装后跑 `/providers-sync`，本机 `~/.zcode/v2/config.json` 的 provider 配置就与验证过的经验对齐；API key 自己粘贴，仓库中永远不出现。
+
+- `/providers-sync`：状态总览，不写入。
+- `/providers-sync grok qwen`：按 name 或 alias 选择性同步。
+- `/providers-sync all`：全部同步。
+
+收录：Kimi、DeepSeek、B.AI、MiniMax、Grok、Qwen、OpenCode（Claude/GPT 两条目）。同步只动 `baseURL`、`kind`、`models`，不动你自己的 key 和自己加的模型。
+
 ## 安装
 
 要求：

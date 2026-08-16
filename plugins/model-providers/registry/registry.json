@@ -1,0 +1,166 @@
+{
+  "schemaVersion": 1,
+  "providers": [
+    {
+      "uuid": "4fb5d2e5-d94b-4334-9df0-cdc5d4772c62",
+      "name": "Kimi",
+      "aliases": ["kimi", "moonshot"],
+      "kind": "anthropic",
+      "baseURL": "https://api.kimi.com/coding",
+      "apiKeyRequired": true,
+      "apiKeyDoc": "https://platform.kimi.com/console/api-keys",
+      "notes": "Coding Plan 订阅端点，需要 Kimi 会员；key 在 Kimi 开放平台控制台创建。",
+      "models": {
+        "k3": {
+          "reasoning": {
+            "enabled": true,
+            "variants": ["low", "high", "max"],
+            "defaultVariant": "max"
+          },
+          "limit": { "context": 1048576, "output": 131072 },
+          "modalities": { "input": ["text"], "output": ["text"] }
+        }
+      }
+    },
+    {
+      "uuid": "4a57f138-6591-4e8a-96b1-78a8810d12dc",
+      "name": "DeepSeek",
+      "aliases": ["deepseek", "ds"],
+      "kind": "openai",
+      "baseURL": "https://api.deepseek.com",
+      "apiKeyRequired": true,
+      "apiKeyDoc": "https://platform.deepseek.com/api_keys",
+      "notes": "官方端点，按量付费；reasoning 支持 off/high/max。",
+      "models": {
+        "deepseek-v4-flash": {
+          "reasoning": {
+            "enabled": true,
+            "variants": ["off", "high", "max"],
+            "defaultVariant": "max"
+          },
+          "limit": { "context": 1000000, "output": 384000 },
+          "modalities": { "input": ["text"], "output": ["text"] }
+        },
+        "deepseek-v4-pro": {
+          "reasoning": {
+            "enabled": true,
+            "variants": ["off", "high", "max"],
+            "defaultVariant": "max"
+          },
+          "limit": { "context": 1000000, "output": 384000 },
+          "modalities": { "input": ["text"], "output": ["text"] }
+        }
+      }
+    },
+    {
+      "uuid": "a5964925-f2e6-48bf-b0c5-3d7656bfe49c",
+      "name": "B.AI",
+      "aliases": ["bai"],
+      "kind": "anthropic",
+      "baseURL": "https://api.b.ai",
+      "apiKeyRequired": true,
+      "apiKeyDoc": "https://docs.b.ai/baiclaw/operation-guide/get-api-key/",
+      "notes": "第三方中转服务，需自备 B.AI 账号；用 anthropic 协议端点。",
+      "models": {
+        "gpt-5.6-luna": {
+          "limit": { "context": 1000000 },
+          "modalities": { "input": ["text"], "output": ["text"] }
+        },
+        "gpt-5.6-sol": {
+          "limit": { "context": 1000000 },
+          "modalities": { "input": ["text"], "output": ["text"] }
+        }
+      }
+    },
+    {
+      "uuid": "1129631a-1b9b-4865-baab-8e9d84361a0a",
+      "name": "MiniMax",
+      "aliases": ["minimax"],
+      "kind": "anthropic",
+      "baseURL": "https://api.minimaxi.com/anthropic",
+      "apiKeyRequired": true,
+      "apiKeyDoc": "https://platform.minimaxi.com/",
+      "notes": "必须用这个 anthropic 端点：官方 openai 兼容端点不收 thinking: enabled。",
+      "models": {
+        "minimax-m3": {
+          "name": "MiniMax-M3",
+          "limit": { "context": 1000000 },
+          "modalities": { "input": ["text"], "output": ["text"] }
+        }
+      }
+    },
+    {
+      "uuid": "2fb07fac-e43f-4095-9d71-031b7b9f03fe",
+      "name": "Grok",
+      "aliases": ["grok", "xai"],
+      "kind": "openai-compatible",
+      "baseURL": "https://api.x.ai/v1",
+      "apiKeyRequired": true,
+      "apiKeyDoc": "https://console.x.ai/",
+      "notes": "必须用 chat completions（kind 保持 openai-compatible）；x.ai 的 Responses API 会回放 422。reasoning 只到 high，max 被拒。",
+      "models": {
+        "grok-4.5": {
+          "reasoning": {
+            "enabled": true,
+            "variants": ["low", "medium", "high"],
+            "defaultVariant": "high"
+          },
+          "limit": { "context": 1000000 },
+          "modalities": { "input": ["text"], "output": ["text"] }
+        },
+        "grok-4.6": {
+          "limit": { "context": 1000000 },
+          "modalities": { "input": ["text"], "output": ["text"] }
+        }
+      }
+    },
+    {
+      "uuid": "9ec863f2-872e-4509-8a50-31a2a92ec5d5",
+      "name": "Qwen",
+      "aliases": ["qwen"],
+      "kind": "anthropic",
+      "baseURL": "https://dashscope-intl.aliyuncs.com/apps/anthropic",
+      "apiKeyRequired": true,
+      "apiKeyDoc": "https://bailian.console.alibabacloud.com/",
+      "notes": "DashScope 国际站（intl）的 anthropic 兼容端点；key 在阿里云百炼国际站创建。",
+      "models": {
+        "qwen3.8-max": {
+          "limit": { "context": 1000000 },
+          "modalities": { "input": ["text"], "output": ["text"] }
+        }
+      }
+    },
+    {
+      "uuid": "fce0c321-d4a2-4643-a9ce-f7212439a0f7",
+      "name": "OpenCode Claude",
+      "aliases": ["opencode-claude", "oc-claude"],
+      "kind": "anthropic",
+      "baseURL": "https://opencode.ai/zen",
+      "apiKeyRequired": true,
+      "apiKeyDoc": "https://opencode.ai/zen",
+      "notes": "OpenCode Zen 第三方中转，需自备账号；anthropic 协议端点，与 OpenCode GPT 共用同一把 key。",
+      "models": {
+        "claude-opus-5": {
+          "limit": { "context": 1000000 },
+          "modalities": { "input": ["text"], "output": ["text"] }
+        }
+      }
+    },
+    {
+      "uuid": "c64c296b-1d10-4201-b20c-d921cfbe35cc",
+      "name": "OpenCode GPT",
+      "aliases": ["opencode-gpt", "oc-gpt"],
+      "kind": "openai",
+      "baseURL": "https://opencode.ai/zen/v1",
+      "apiKeyRequired": true,
+      "apiKeyDoc": "https://opencode.ai/zen",
+      "notes": "OpenCode Zen 第三方中转，需自备账号；openai 协议端点（baseURL 带 /v1），与 OpenCode Claude 共用同一把 key。",
+      "models": {
+        "gpt-5.6-sol": {
+          "limit": { "context": 1000000 },
+          "modalities": { "input": ["text"], "output": ["text"] }
+        }
+      }
+    }
+  ]
+}
