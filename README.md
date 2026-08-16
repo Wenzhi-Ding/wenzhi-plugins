@@ -23,7 +23,7 @@ ZCode 插件市场。在 ZCode 的插件管理里添加本仓库即可一键安�
 要求：
 
 - ZCode
-- 本机可运行 `node`（≥ 16，hook 用 node 执行）
+- 本机可运行 `bash`（macOS/Linux 自带；Windows 用 Git Bash，ZCode 在 Windows 本身依赖它）
 
 步骤：
 

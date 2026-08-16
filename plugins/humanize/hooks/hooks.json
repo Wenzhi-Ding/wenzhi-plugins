@@ -4,9 +4,8 @@
       {
         "hooks": [
           {
-            "type": "process",
-            "command": "node",
-            "args": ["${ZCODE_PLUGIN_ROOT}/hooks/humanize.mjs"],
+            "type": "command",
+            "command": "bash \"${ZCODE_PLUGIN_ROOT}/hooks/humanize.sh\"",
             "timeoutMs": 10000,
             "statusMessage": "humanize: 注入说人话指令"
           }
