@@ -48,7 +48,7 @@ plugins/model-providers/
       "apiKeyDoc": "https://console.x.ai/",
       "notes": "必须用 chat completions（kind 保持 openai-compatible）；reasoning 只到 high，max 被拒",
       "models": {
-        "grok-4.6": {
+        "grok-4.5": {
           "reasoning": { "enabled": true, "variants": ["low", "medium", "high"], "defaultVariant": "high" },
           "limit": { "context": 1000000 },
           "modalities": { "input": ["text"], "output": ["text"] }
