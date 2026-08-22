@@ -1,6 +1,6 @@
 {
   "name": "humanize",
-  "version": "0.2.7",
+  "version": "0.2.8",
   "description": "每次用户发送消息时注入「说人话」要求：句子语法完整；非专业名词不用英文；讲解按前因后果、术语先白话后挂名；用户自己的用词照用不改写；范围限会话回复，产出物按文体规范。",
   "description_i18n": {
     "en": "Injects plain-speech rules on every user prompt: complete sentences; no jargon or translation-style Chinese; cause-and-effect explanations with plain-language term introductions; mirror the user's own wording without rewriting it; rules apply to chat replies, while artifact drafts follow genre-specific style guides.",
