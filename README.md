@@ -40,12 +40,21 @@ humanize 通过 UserPromptSubmit hook 向会话注入一段「说人话」要求
 
 收录：Kimi、DeepSeek、B.AI、MiniMax、Grok、Qwen、OpenCode（Claude/GPT 两条目）。同步只动 `baseURL`、`kind`、`models`，不动你自己的 key 和自己加的模型。
 
+### skill-stats
+
+统计每个技能（skill）被触发的次数，并区分触发来源：你在输入框敲 `/技能名` 触发，还是 agent 在任务中主动选择调用。在会话里输入 `/skill-stats` 查看统计表。
+
+原理：用户输入 `/mail …` 后 agent 会跟着调用 `Skill(mail)`，插件用 UserPromptSubmit 钩子记下输入、用 PreToolUse 钩子记下调用，按「同会话同名、10 分钟内」把两者关联成一次用户触发；没有对应输入的调用则记为 agent 主动调用。普通消息不触发钩子脚本（matcher 只放行以 `/` 开头的输入）。
+
+数据存在 `~/.zcode/skill-stats/events.jsonl`（追加式日志，含时间、会话、技能名、来源、截断到 120 字符的参数），`~/.zcode/skill-stats-off` 文件存在时停止记录。详见插件目录下的 README。
+
 ## 安装
 
 要求：
 
 - ZCode
-- 本机可运行 `bash`（macOS/Linux 自带；Windows 用 Git Bash，ZCode 在 Windows 本身依赖它）
+- 本机可运行 `bash`（macOS/Linux 自带；Windows 用 Git Bash，ZCode 在 Windows 本身依赖它）——humanize 需要
+- 本机可运行 `python`（Python 3）——skill-stats 需要
 
 步骤：
 

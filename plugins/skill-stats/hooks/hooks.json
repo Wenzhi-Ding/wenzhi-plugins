@@ -1,0 +1,30 @@
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "matcher": "^/|^Run custom command /|Use the skill named|<command-name>",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"${ZCODE_PLUGIN_ROOT}/hooks/skill_stats.py\" slash-prompt",
+            "timeoutMs": 5000,
+            "statusMessage": "skill-stats: 记录斜杠输入"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "^Skill$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"${ZCODE_PLUGIN_ROOT}/hooks/skill_stats.py\" skill-call",
+            "timeoutMs": 5000,
+            "statusMessage": "skill-stats: 记录技能调用"
+          }
+        ]
+      }
+    ]
+  }
+}
