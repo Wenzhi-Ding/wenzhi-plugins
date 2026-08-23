@@ -2,9 +2,119 @@
 # humanize 插件的 UserPromptSubmit hook。
 #
 # 协议（ZCode）：stdout 输出单个 JSON 对象（以 { 开头）；退出码 0 放行；诊断信息写 stderr。
-# 故意不读 stdin：事件负载很小写不满管道缓冲，而宿主若不关闭管道，读 stdin 的实现会一直挂起到超时。
+# 故意不读 stdin：宿主写入事件后不关闭管道，等 EOF 的读法会一直挂起到超时（zcode-tools 4.5）。
 #
-# 手动冒烟测试：
-#   echo '{"hook_event_name":"UserPromptSubmit"}' | bash hooks/humanize.sh
+# 行为：
+#   - 规则正文在 hooks/rules.txt，本脚本读入、做 JSON 转义后拼进 additionalContext。
+#   - 隔轮注入：每会话第 1 轮注入完整规则，此后每 HUMANIZE_EVERY 轮（默认 4）再全量注入一次，
+#     其余轮只注入一行提醒——完整规则留在会话历史里，提醒维持存在感。
+#   - 会话标识用环境变量 ZCODE_SESSION_ID（宿主给 hook 子进程注入），取不到时退回全局计数，
+#     多个会话并行时会互相当轮次，属可接受的降级。
+#   - 开关：~/.zcode/humanize-off 存在时不注入（每次触发重新检查，中途生效）。
+#   - 失败可见：规则文件缺失/为空时输出 systemMessage 提示（每会话一次）+ stderr 诊断，不注入。
+#
+# 配置（环境变量）：
+#   HUMANIZE_EVERY        隔几轮注入一次完整规则，默认 4；设为 1 恢复每轮完整注入
+#   HUMANIZE_OFF_FILE     开关文件路径，默认 ~/.zcode/humanize-off
+#   HUMANIZE_RULES_FILE   规则文件路径，默认随插件目录
+#   HUMANIZE_STATE_DIR    计数状态目录，默认 $TMPDIR/humanize
+#   HUMANIZE_DEBUG        1 = 往 stderr 写一行运行诊断（会话键、轮次、模式）
+#
+# 手动冒烟测试（在仓库 plugins/humanize 目录下）：
+#   bash hooks/humanize.sh                 # 第 1 次输出完整规则
+#   bash hooks/humanize.sh                 # 连跑 8 次：第 5 次起完整/提醒交替（默认 EVERY=4）
+#   HUMANIZE_EVERY=1 bash hooks/humanize.sh
+#   touch ~/.zcode/humanize-off && bash hooks/humanize.sh   # 应无输出；测完 rm 掉开关文件
+#   HUMANIZE_RULES_FILE=/nonexistent bash hooks/humanize.sh # 首次应输出带 systemMessage 的 JSON
+#   stdin 保持打开不得挂起（zcode-tools 4.5.4）：
+#     node -e "const{spawn}=require('child_process');const p=spawn('bash',['hooks/humanize.sh'],{stdio:['pipe','pipe','pipe']});const t=setTimeout(()=>{console.error('HANG');p.kill();process.exit(1)},5000);p.on('exit',c=>{clearTimeout(t);console.log('exited',c)})"
 
-printf '%s' '{"hookSpecificOutput":{"hookEventName":"UserPromptSubmit","additionalContext":"【说人话要求】回答时遵守：0. 适用范围：以下规则管会话回复的中文表达；为用户起草产出物（论文、报告、对外邮件等）时，按该文体自身的写作规范执行，不把会话表达规则套到产出物上。1. 句子语法完整：每句话有完整主谓结构，不写残句，不用名词短语堆砌代替句子。2. 不用隐喻描述论证或因果结构：不要用物理动作或空间关系（闭合、挂在…一侧、走…侧、连成、串起、打通、下沉）写抽象的因果或逻辑关系，改用直白说法（已经完整、来源于、导致、影响、属于）；错：「链是闭合的，而且挂在 carrot 一侧」，对：「因果链条已经完整：早期经历影响催收员用不用 carrot，carrot 再影响还款」。同理不自造名词性新词——错：「表格命运」「故事脊柱」，对：「表格编排」「故事主线」；也不把多词的说法压缩成自造短词——错：「论证质量线」（原意是「以论证质量解释 X 的这条路线」，压缩后读者无法还原），对：「用论证质量解释 X 的这条路线」。检验：缩出来的短词单独出现时读不读得懂原意，读不懂就写全称；「主线」「渠道」这类现成的词不受影响。3. 中文回答时非专业名词不用英文：有通用中文说法的概念按中文语法组织成句——错：「imprinting 形状」，对：「符合 imprinting 理论」；仅没有通用译法的技术术语（API、token、commit 等）可保留英文。4. 不写翻译腔：按中文语序写短句，主动语态优先，少用长定语、被动句和「作为……的……」结构；不把术语压缩成谓语——错：「福利损失走的是 carrot 供给侧」，对：「福利损失来自 carrot 用得太少」；不能单独成词的单字要先组词再用——错：「姿态是谦的」，对：「姿态放得很低」；英文习语和固定说法用通行译法，不逐字直译、不自造字面译名——错：「拇指规则」（rule of thumb），对：「经验法则」；拿不准通行译法时，按意思用完整中文句子说清并括注英文原词，不硬造直译。5. 不用空洞大词和夸张修饰：避免「赋能」「闭环」「底层逻辑」「非常」「极其」等，用具体事实代替评价。6. 避免 AI 套话：不用「值得注意的是」「需要指出的是」「总的来说」这类表达，结尾不强行总结升华。7. 不编造情境给自己找台阶下：不要声称时间早晚（「现在已经凌晨了」）、用户疲劳/该休息、工作量很大该收尾等，也不要借这些名义主动「给个总结就停」「明天再决定」。需要停就直说停下来或继续做，不要虚构时间和情绪场景来包装停止决定；任务本身该做到哪步由任务决定，不由「今天做了很多」来收尾。8. 讲概念、讲论文按前因后果组织，不按论文章节或定义顺序罗列：先说看到了什么现象、要解决什么问题，再说想了什么办法、办法怎么运作、得到什么结果。术语第一次出现时先用大白话讲清它指什么，再挂名字——错：「在马尔萨斯约束 binding 时收入效应主导替代效应」，对：「穷家庭的消费被压在温饱线上，论文里管这叫『马尔萨斯约束』；这时候越富的家庭孩子越多，收入的影响盖过了时间成本的影响」。解释抽象学术概念时，先说清比较谁、在哪种情况下、什么发生变化；涉及不同层次时，分别说明同一个人的变化和不同人之间的差异，用甲乙人物或实际数字走一遍，最后才给 within-individual、across-individual 等术语。不得用「行政推断值」「转职解释高阶矩」「高阶矩可分解性」这类压缩短语代替解释；要展开成完整句子，说明数据怎样计算、比较了哪两个对象、结果具体是什么。9. 抽象论断配具体量级：说「缓慢积累」就给「每代 2.5%、两百年累计 30%」这样的数字，说「大幅下降」就给幅度；给不出数字的定性评价宁可删掉。10. 用户提出自己的解释或质疑时，顺着对方的版本回应：先指出其中成立的部分，再指出与事实错位的部分，然后才展开论述；不要绕开对方的说法只复述原文的框架。11. 保留用户自己的用词：用户已在使用或自己提出的比喻、缩略语、术语、自造词，回答时照用并沿用其含义，不因与第 2、5 条禁令的词形相近就回避、改写或纠正——禁令管的是 AI 自生的新比喻和空洞大词，不管用户已用的词。自检：写完关键论断回看一遍，凡是用物理动作描述因果或逻辑关系的，改成直白说法；凡是把多词说法压成自造短词的，展开成完整说法；凡是英文习语被逐字直译的，换成通行译法或按意思意译并括注原词；凡是出现时间/疲劳/情绪类表述的，删掉，换成对下一步动作的直白说明；凡是术语出现在白话解释之前的，把白话提到前面；凡是抽象论断没有量级数字的，补数字或删论断。"}}'
+set -u
+
+err() { printf 'humanize: %s\n' "$*" >&2; }
+
+SELF_DIR="$(cd "$(dirname "$0")" && pwd)"
+RULES_FILE="${HUMANIZE_RULES_FILE:-$SELF_DIR/rules.txt}"
+OFF_FILE="${HUMANIZE_OFF_FILE:-$HOME/.zcode/humanize-off}"
+STATE_ROOT="${HUMANIZE_STATE_DIR:-${TMPDIR:-/tmp}/humanize}"
+EVERY="${HUMANIZE_EVERY:-4}"
+DEBUG="${HUMANIZE_DEBUG:-0}"
+
+case "$EVERY" in ''|*[!0-9]*|0) EVERY=4 ;; esac
+
+# 开关：文件存在即静默放行、不注入。
+[ -f "$OFF_FILE" ] && exit 0
+
+json_escape() {
+  # JSON 字符串转义。顺序固定：先删 CR（Windows 行尾），再转义反斜杠、双引号、制表符、换行。
+  local s="$1"
+  s="${s//$'\r'/}"
+  s="${s//\\/\\\\}"
+  s="${s//\"/\\\"}"
+  s="${s//$'\t'/\\t}"
+  s="${s//$'\n'/\\n}"
+  printf '%s' "$s"
+}
+
+emit_context() { # $1：已转义的 additionalContext 文本
+  printf '{"hookSpecificOutput":{"hookEventName":"UserPromptSubmit","additionalContext":"%s"}}\n' "$1"
+}
+
+REMINDER='【说人话要求·提醒】说人话规则本轮继续生效，完整规则见本会话前文的「【说人话要求】」条目：写完整句子；不用物理动作或空间关系写因果；不把多词说法压成自造短词；不写翻译腔；不用 AI 套话和空洞大词；论断配具体量级；术语先用白话讲清、再挂名字。'
+
+# ---- 会话标识 --------------------------------------------------------------
+session_key="${ZCODE_SESSION_ID:-${CLAUDE_SESSION_ID:-}}"
+session_key="$(printf '%s' "$session_key" | tr -cd 'A-Za-z0-9_-')"
+[ -n "$session_key" ] || session_key="shared"
+
+# ---- 读规则；缺失/为空则可见地放行 ----------------------------------------
+rules=""
+if [ -r "$RULES_FILE" ]; then
+  rules="$(tr -d '\r' < "$RULES_FILE")"
+fi
+if [ -z "$rules" ]; then
+  err "规则文件缺失或为空：$RULES_FILE，本轮未注入说人话规则。"
+  mkdir -p "$STATE_ROOT" 2>/dev/null || true
+  notified="$STATE_ROOT/$session_key.notified"
+  if [ -d "$STATE_ROOT" ] && [ ! -e "$notified" ] && : > "$notified" 2>/dev/null; then
+    printf '{"systemMessage":"humanize: 规则文件缺失或为空（%s），本轮未注入说人话规则；本提示每会话只出现一次。"}\n' \
+      "$(json_escape "$RULES_FILE")"
+  fi
+  exit 0
+fi
+
+# ---- 隔轮计数 --------------------------------------------------------------
+inject_full=1
+turn=1
+if [ "$EVERY" -gt 1 ] && mkdir -p "$STATE_ROOT" 2>/dev/null && [ -d "$STATE_ROOT" ]; then
+  cnt_file="$STATE_ROOT/$session_key.count"
+  if [ -f "$cnt_file" ]; then
+    now=$(date +%s)
+    mt=$(date -r "$cnt_file" +%s 2>/dev/null || printf '%s' "$now")
+    if [ $((now - mt)) -lt 21600 ]; then   # 6 小时内的计数才续用，更久视为新会话
+      old=$(cat "$cnt_file" 2>/dev/null)
+      case "$old" in ''|*[!0-9]*) old=0 ;; esac
+      turn=$((old + 1))
+    fi
+  fi
+  # 写失败就保持 inject_full=1：宁可每轮完整注入，也不能卡在提醒上漏掉规则。
+  if printf '%s\n' "$turn" > "$cnt_file" 2>/dev/null; then
+    if [ $(( (turn - 1) % EVERY )) -ne 0 ]; then
+      inject_full=0
+    fi
+  fi
+  find "$STATE_ROOT" -name '*.count' -mtime +2 -delete 2>/dev/null || true
+  find "$STATE_ROOT" -name '*.notified' -mtime +2 -delete 2>/dev/null || true
+fi
+
+if [ "$DEBUG" = "1" ]; then
+  mode=full; [ "$inject_full" = 1 ] || mode=reminder
+  err "key=$session_key turn=$turn every=$EVERY mode=$mode rules_bytes=${#rules}"
+fi
+
+if [ "$inject_full" = 1 ]; then
+  emit_context "$(json_escape "$rules")"
+else
+  emit_context "$(json_escape "$REMINDER")"
+fi
+exit 0
