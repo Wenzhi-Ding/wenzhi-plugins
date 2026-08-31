@@ -10,7 +10,7 @@
         "en": "Injects plain-speech rules into the session (full rules on the first turn, then periodically, with one-line reminders in between): complete sentences; no jargon or translation-style Chinese; established translations for English idioms instead of word-for-word renderings, and metaphors from foreign-language sources unpacked into plain meaning rather than carried over literally; coined shorthand labels must stay understandable without context — expand them or attach an example on first use; no hollow buzzwords or AI cliches; mirror the user's own wording without rewriting it; applies to chat replies and drafted artifacts (papers, reports, emails) alike. Research-adjacent expression discipline (cause-and-effect explanations, plain-language term introductions) lives in research-interpretation.",
         "zh-CN": "向会话注入「说人话」要求（每会话首轮全量规则，此后隔数轮再全量一次，其余轮一行提醒）：句子语法完整；非专业名词不用英文；英文习语用通行译法不逐字直译，转述外文材料时源的隐喻拆成平白意义再表达；自造压缩标签拿掉上下文仍要能读懂，读不懂就展开或首现配实例；不用空洞大词和 AI 套话；用户自己的用词照用不改写；会话回复和产出物（论文、报告、对外邮件等）都适用。研究相关的表达纪律（讲概念按前因后果、术语先白话后挂名）归 research-interpretation。"
       },
-      "version": "0.4.0",
+      "version": "0.4.1",
       "author": {
         "name": "Wenzhi Ding",
         "url": "https://github.com/Wenzhi-Ding"

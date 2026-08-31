@@ -30,6 +30,14 @@ humanize 通过 UserPromptSubmit hook 向会话注入一段「说人话」要求
 - `HUMANIZE_RULES_FILE`：规则文件路径，默认用插件自带的 `hooks/rules.txt`；想调整规则直接编辑这个文件即可。
 - `HUMANIZE_DEBUG`：设为 `1` 时往 stderr 输出一行运行诊断（会话键、轮次、注入模式）。
 
+回归测试（需要 Python 3、Node.js 和 Git Bash）：
+
+```bash
+python plugins/humanize/tests/test_humanize.py
+```
+
+测试会检查完整规则保留两个原始案例，短提醒保留对应的两项约束，并覆盖默认注入轮次、关闭开关、规则文件缺失提示，以及 stdin 保持打开时脚本不挂起。
+
 ### model-providers
 
 各家模型厂商在 ZCode 里的正确配置（端点、协议 kind、reasoning 档位、参数怪癖）的结构化 registry。安装后跑 `/providers-sync`，本机 `~/.zcode/v2/config.json` 的 provider 配置就与验证过的经验对齐；API key 自己粘贴，仓库中永远不出现。

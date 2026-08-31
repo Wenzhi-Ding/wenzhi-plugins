@@ -22,7 +22,7 @@
 #
 # 手动冒烟测试（在仓库 plugins/humanize 目录下）：
 #   bash hooks/humanize.sh                 # 第 1 次输出完整规则
-#   bash hooks/humanize.sh                 # 连跑 8 次：第 5 次起完整/提醒交替（默认 EVERY=4）
+#   bash hooks/humanize.sh                 # 连跑 8 次：第 1、5 次输出完整规则，其余输出提醒（默认 EVERY=4）
 #   HUMANIZE_EVERY=1 bash hooks/humanize.sh
 #   touch ~/.zcode/humanize-off && bash hooks/humanize.sh   # 应无输出；测完 rm 掉开关文件
 #   HUMANIZE_RULES_FILE=/nonexistent bash hooks/humanize.sh # 首次应输出带 systemMessage 的 JSON
