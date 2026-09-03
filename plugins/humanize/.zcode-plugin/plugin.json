@@ -1,6 +1,6 @@
 {
   "name": "humanize",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "向会话注入「说人话」要求：概念性「为什么/是什么」先给最短充分答案，答完即停，复杂任务不套固定长度；句子完整；不用翻译腔、隐喻、压缩标签、空洞大词和 AI 套话；用户自己的用词照用。会话回复和起草的产出物都适用。",
   "description_i18n": {
     "en": "Injects plain-speech rules into the session: conceptual why/what questions get the shortest sufficient answer and stop when answered, while complex tasks retain the detail they require; complete sentences; no translation-style Chinese, imported metaphors, opaque shorthand, hollow buzzwords, or AI cliches; preserves the user's own wording. Applies to chat replies and drafted artifacts.",

@@ -90,22 +90,18 @@ class HumanizeHookTestCase(unittest.TestCase):
 
 
 class TestRuleRegression(HumanizeHookTestCase):
-    def test_full_rules_cover_opaque_labels_and_source_metaphors(self):
+    def test_full_rules_keep_label_and_source_metaphor_principles(self):
         payload = self.run_hook()
         self.assertEqual(payload["hookSpecificOutput"]["hookEventName"], "UserPromptSubmit")
         context = self.context(payload)
 
         for phrase in (
-            "行会共识",
-            "学术共同体共同接受的标准",
+            "不自造压缩词",
             "拿掉上下文",
             "领域新人",
-            "具体实例",
-            "the channel is open",
-            "渠道开着",
-            "这条传导路径上确有活动",
-            "引用原文并加以解释",
-            "文献综述、会议纪要、讲义汇报",
+            "首次出现配一个实例",
+            "还原成平白意义",
+            "不照字面搬进中文",
         ):
             with self.subTest(phrase=phrase):
                 self.assertIn(phrase, context)
@@ -115,8 +111,6 @@ class TestRuleRegression(HumanizeHookTestCase):
         for phrase in (
             "最短充分答案",
             "核心问题答完就停",
-            "删掉这一项会不会妨碍用户理解核心结论",
-            "不把短问题自动升级成完整论文摘要",
             "复杂任务不套固定长度",
             "完整性优先",
         ):
@@ -171,11 +165,17 @@ class TestVersionRegistration(unittest.TestCase):
         plugin = json.loads((PLUGIN_DIR / ".zcode-plugin" / "plugin.json").read_text(encoding="utf-8"))
         marketplace = json.loads((PLUGIN_DIR.parent.parent / "marketplace.json").read_text(encoding="utf-8"))
         entry = next(item for item in marketplace["plugins"] if item["name"] == "humanize")
-        self.assertEqual(plugin["version"], "0.6.0")
-        self.assertEqual(entry["version"], "0.6.0")
+        self.assertEqual(plugin["version"], "0.7.0")
+        self.assertEqual(entry["version"], "0.7.0")
 
     def test_rules_file_is_not_empty(self):
         self.assertTrue(RULES.read_text(encoding="utf-8").strip())
+
+    def test_rules_stay_within_length_budget(self):
+        text = RULES.read_text(encoding="utf-8").replace("\r", "")
+        self.assertLessEqual(
+            len(text), 800, "规则超出 800 字预算——按「只给原则」的定位，新增内容先挤掉旧的再进"
+        )
 
 
 if __name__ == "__main__":
