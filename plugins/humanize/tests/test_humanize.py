@@ -90,29 +90,19 @@ class HumanizeHookTestCase(unittest.TestCase):
 
 
 class TestRuleRegression(HumanizeHookTestCase):
-    def test_full_rules_keep_label_and_source_metaphor_principles(self):
+    def test_full_rules_state_general_principles(self):
         payload = self.run_hook()
         self.assertEqual(payload["hookSpecificOutput"]["hookEventName"], "UserPromptSubmit")
         context = self.context(payload)
 
         for phrase in (
-            "不自造压缩词",
-            "拿掉上下文",
-            "领域新人",
-            "首次出现配一个实例",
-            "还原成平白意义",
-            "不照字面搬进中文",
-        ):
-            with self.subTest(phrase=phrase):
-                self.assertIn(phrase, context)
-
-    def test_full_rules_define_minimal_sufficient_answer_and_stop_condition(self):
-        context = self.context(self.run_hook(session="sess_scope"))
-        for phrase in (
-            "最短充分答案",
-            "核心问题答完就停",
-            "复杂任务不套固定长度",
-            "完整性优先",
+            "适用于中英文写作",
+            "语法完整",
+            "不拿比喻或具体形象充当逻辑连接",
+            "压缩说法",
+            "最恰当的译法",
+            "不逐字直译",
+            "保证信息充分的前提下尽可能简洁",
         ):
             with self.subTest(phrase=phrase):
                 self.assertIn(phrase, context)
@@ -165,8 +155,8 @@ class TestVersionRegistration(unittest.TestCase):
         plugin = json.loads((PLUGIN_DIR / ".zcode-plugin" / "plugin.json").read_text(encoding="utf-8"))
         marketplace = json.loads((PLUGIN_DIR.parent.parent / "marketplace.json").read_text(encoding="utf-8"))
         entry = next(item for item in marketplace["plugins"] if item["name"] == "humanize")
-        self.assertEqual(plugin["version"], "0.7.0")
-        self.assertEqual(entry["version"], "0.7.0")
+        self.assertEqual(plugin["version"], "0.8.0")
+        self.assertEqual(entry["version"], "0.8.0")
 
     def test_rules_file_is_not_empty(self):
         self.assertTrue(RULES.read_text(encoding="utf-8").strip())
