@@ -6,15 +6,15 @@
 #
 # 行为：
 #   - 规则正文在 hooks/rules.txt，本脚本读入、做 JSON 转义后拼进 additionalContext。
-#   - 隔轮注入：每会话第 1 轮注入完整规则，此后每 HUMANIZE_EVERY 轮（默认 4）再全量注入一次，
-#     其余轮只注入一行提醒——完整规则留在会话历史里，提醒维持存在感。
+#   - 每轮注入完整规则（默认）。HUMANIZE_EVERY 设为大于 1 的值时改回隔轮：每会话第 1 轮
+#     全量注入，此后每 HUMANIZE_EVERY 轮再全量一次，其余轮只注入一行提醒。
 #   - 会话标识用环境变量 ZCODE_SESSION_ID（宿主给 hook 子进程注入），取不到时退回全局计数，
 #     多个会话并行时会互相当轮次，属可接受的降级。
 #   - 开关：~/.zcode/humanize-off 存在时不注入（每次触发重新检查，中途生效）。
 #   - 失败可见：规则文件缺失/为空时输出 systemMessage 提示（每会话一次）+ stderr 诊断，不注入。
 #
 # 配置（环境变量）：
-#   HUMANIZE_EVERY        隔几轮注入一次完整规则，默认 4；设为 1 恢复每轮完整注入
+#   HUMANIZE_EVERY        隔几轮注入一次完整规则，默认 1（每轮注入）；设为大于 1 的值改回隔轮
 #   HUMANIZE_OFF_FILE     开关文件路径，默认 ~/.zcode/humanize-off
 #   HUMANIZE_RULES_FILE   规则文件路径，默认随插件目录
 #   HUMANIZE_STATE_DIR    计数状态目录，默认 $TMPDIR/humanize
@@ -22,8 +22,8 @@
 #
 # 手动冒烟测试（在仓库 plugins/humanize 目录下）：
 #   bash hooks/humanize.sh                 # 第 1 次输出完整规则
-#   bash hooks/humanize.sh                 # 连跑 8 次：第 1、5 次输出完整规则，其余输出提醒（默认 EVERY=4）
-#   HUMANIZE_EVERY=1 bash hooks/humanize.sh
+#   bash hooks/humanize.sh                 # 连跑几次：每次都输出完整规则（默认 EVERY=1）
+#   HUMANIZE_EVERY=4 bash hooks/humanize.sh   # 连跑 8 次：第 1、5 次输出完整规则，其余输出提醒
 #   touch ~/.zcode/humanize-off && bash hooks/humanize.sh   # 应无输出；测完 rm 掉开关文件
 #   HUMANIZE_RULES_FILE=/nonexistent bash hooks/humanize.sh # 首次应输出带 systemMessage 的 JSON
 #   stdin 保持打开不得挂起（zcode-tools 4.5.4）：
@@ -37,10 +37,10 @@ SELF_DIR="$(cd "$(dirname "$0")" && pwd)"
 RULES_FILE="${HUMANIZE_RULES_FILE:-$SELF_DIR/rules.txt}"
 OFF_FILE="${HUMANIZE_OFF_FILE:-$HOME/.zcode/humanize-off}"
 STATE_ROOT="${HUMANIZE_STATE_DIR:-${TMPDIR:-/tmp}/humanize}"
-EVERY="${HUMANIZE_EVERY:-4}"
+EVERY="${HUMANIZE_EVERY:-1}"
 DEBUG="${HUMANIZE_DEBUG:-0}"
 
-case "$EVERY" in ''|*[!0-9]*|0) EVERY=4 ;; esac
+case "$EVERY" in ''|*[!0-9]*|0) EVERY=1 ;; esac
 
 # 开关：文件存在即静默放行、不注入。
 [ -f "$OFF_FILE" ] && exit 0
