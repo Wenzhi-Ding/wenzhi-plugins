@@ -98,10 +98,11 @@ class TestRuleRegression(HumanizeHookTestCase):
         for phrase in (
             "适用于中英文写作",
             "语法完整",
-            "不拿比喻或具体形象充当逻辑连接",
+            "不打比方",
             "压缩说法",
-            "最恰当的译法",
-            "不逐字直译",
+            "最贴切的译法",
+            "不直译",
+            "不写翻译腔",
             "保证信息充分的前提下尽可能简洁",
         ):
             with self.subTest(phrase=phrase):
@@ -155,8 +156,8 @@ class TestVersionRegistration(unittest.TestCase):
         plugin = json.loads((PLUGIN_DIR / ".zcode-plugin" / "plugin.json").read_text(encoding="utf-8"))
         marketplace = json.loads((PLUGIN_DIR.parent.parent / "marketplace.json").read_text(encoding="utf-8"))
         entry = next(item for item in marketplace["plugins"] if item["name"] == "humanize")
-        self.assertEqual(plugin["version"], "0.8.0")
-        self.assertEqual(entry["version"], "0.8.0")
+        self.assertEqual(plugin["version"], "0.8.1")
+        self.assertEqual(entry["version"], "0.8.1")
 
     def test_rules_file_is_not_empty(self):
         self.assertTrue(RULES.read_text(encoding="utf-8").strip())
