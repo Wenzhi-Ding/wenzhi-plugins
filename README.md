@@ -25,10 +25,8 @@ humanize 通过 UserPromptSubmit hook 在每条用户消息后注入一段「说
 
 配置（可选，环境变量）：
 
-- `HUMANIZE_EVERY`：隔几轮注入一次完整规则，默认 `1`（每轮都注入完整规则）；设为大于 `1` 的值改回隔轮注入（首轮全量、此后每 N 轮全量、其余轮一行提醒）。
 - `HUMANIZE_OFF_FILE`：开关文件路径，默认 `~/.zcode/humanize-off`。文件存在时不注入，删除后恢复；每次发消息都会重新检查，会话中途即生效。
 - `HUMANIZE_RULES_FILE`：规则文件路径，默认用插件自带的 `hooks/rules.txt`；想调整规则直接编辑这个文件即可。
-- `HUMANIZE_DEBUG`：设为 `1` 时往 stderr 输出一行运行诊断（会话键、轮次、注入模式）。
 
 回归测试（需要 Python 3、Node.js 和 Git Bash）：
 
@@ -36,7 +34,7 @@ humanize 通过 UserPromptSubmit hook 在每条用户消息后注入一段「说
 python plugins/humanize/tests/test_humanize.py
 ```
 
-测试会检查完整规则保留原始语言案例和回答范围门槛，短提醒保留对应约束，并覆盖默认每轮全量注入、显式 `HUMANIZE_EVERY=4` 的隔轮路径、关闭开关、规则文件缺失提示，以及 stdin 保持打开时脚本不挂起。
+测试会检查完整规则保留原始语言案例和回答范围门槛，并覆盖每轮全量注入、外部残留的 `HUMANIZE_EVERY` 不改变行为、关闭开关、规则文件缺失提示，以及 stdin 保持打开时脚本不挂起。
 
 ### model-providers
 

@@ -110,14 +110,6 @@ class TestRuleRegression(HumanizeHookTestCase):
             with self.subTest(phrase=phrase):
                 self.assertIn(phrase, context)
 
-    def test_reminder_keeps_both_protections_visible(self):
-        every4 = {"HUMANIZE_EVERY": "4"}
-        self.run_hook(session="sess_reminder", extra_env=every4)
-        payload = self.run_hook(session="sess_reminder", extra_env=every4)
-        context = self.context(payload)
-        self.assertIn("标签拿掉上下文要还能懂", context)
-        self.assertIn("源的隐喻先拆成平白意义", context)
-
     def test_full_rules_define_minimal_sufficient_answer_and_stop_condition(self):
         context = self.context(self.run_hook(session="sess_scope"))
         for phrase in (
@@ -131,15 +123,6 @@ class TestRuleRegression(HumanizeHookTestCase):
             with self.subTest(phrase=phrase):
                 self.assertIn(phrase, context)
 
-    def test_reminder_keeps_answer_scope_visible(self):
-        every4 = {"HUMANIZE_EVERY": "4"}
-        self.run_hook(session="sess_scope_reminder", extra_env=every4)
-        payload = self.run_hook(session="sess_scope_reminder", extra_env=every4)
-        context = self.context(payload)
-        self.assertIn("概念性「为什么/是什么」先给最短充分答案", context)
-        self.assertIn("核心问题答完就停", context)
-        self.assertIn("复杂任务不套固定长度", context)
-
 
 class TestInjectionBehavior(HumanizeHookTestCase):
     def test_default_injects_full_rules_every_turn(self):
@@ -150,21 +133,10 @@ class TestInjectionBehavior(HumanizeHookTestCase):
         for context in contexts:
             self.assertTrue(context.startswith("【说人话要求】"))
 
-    def test_every_four_keeps_old_interval_schedule(self):
-        every4 = {"HUMANIZE_EVERY": "4"}
-        contexts = [
-            self.context(self.run_hook(session="sess_every_four", extra_env=every4))
-            for _ in range(5)
-        ]
-        self.assertTrue(contexts[0].startswith("【说人话要求】"))
-        for context in contexts[1:4]:
-            self.assertTrue(context.startswith("【说人话要求·提醒】"))
-        self.assertTrue(contexts[4].startswith("【说人话要求】"))
-
-    def test_every_one_injects_full_rules_each_turn(self):
+    def test_interval_env_knob_is_inert(self):
         for _ in range(3):
             context = self.context(
-                self.run_hook(session="sess_every_one", extra_env={"HUMANIZE_EVERY": "1"})
+                self.run_hook(session="sess_every_gone", extra_env={"HUMANIZE_EVERY": "4"})
             )
             self.assertTrue(context.startswith("【说人话要求】"))
 
@@ -187,10 +159,11 @@ class TestInjectionBehavior(HumanizeHookTestCase):
         payload = self.run_hook(session="sess_open_stdin", keep_stdin_open=True)
         self.assertTrue(self.context(payload).startswith("【说人话要求】"))
 
-    def test_manual_smoke_comment_describes_actual_schedule(self):
+    def test_smoke_comment_current_and_no_interval_residue(self):
         source = SCRIPT.read_text(encoding="utf-8")
-        self.assertIn("连跑几次：每次都输出完整规则（默认 EVERY=1）", source)
-        self.assertIn("HUMANIZE_EVERY=4 bash hooks/humanize.sh   # 连跑 8 次：第 1、5 次输出完整规则，其余输出提醒", source)
+        self.assertIn("bash hooks/humanize.sh                 # 每次运行都输出完整规则", source)
+        self.assertNotIn("HUMANIZE_EVERY", source)
+        self.assertNotIn("说人话要求·提醒", source)
 
 
 class TestVersionRegistration(unittest.TestCase):
@@ -198,8 +171,8 @@ class TestVersionRegistration(unittest.TestCase):
         plugin = json.loads((PLUGIN_DIR / ".zcode-plugin" / "plugin.json").read_text(encoding="utf-8"))
         marketplace = json.loads((PLUGIN_DIR.parent.parent / "marketplace.json").read_text(encoding="utf-8"))
         entry = next(item for item in marketplace["plugins"] if item["name"] == "humanize")
-        self.assertEqual(plugin["version"], "0.5.0")
-        self.assertEqual(entry["version"], "0.5.0")
+        self.assertEqual(plugin["version"], "0.6.0")
+        self.assertEqual(entry["version"], "0.6.0")
 
     def test_rules_file_is_not_empty(self):
         self.assertTrue(RULES.read_text(encoding="utf-8").strip())
