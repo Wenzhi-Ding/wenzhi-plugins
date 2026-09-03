@@ -117,6 +117,27 @@ class TestRuleRegression(HumanizeHookTestCase):
         self.assertIn("标签拿掉上下文要还能懂", context)
         self.assertIn("源的隐喻先拆成平白意义", context)
 
+    def test_full_rules_define_minimal_sufficient_answer_and_stop_condition(self):
+        context = self.context(self.run_hook(session="sess_scope"))
+        for phrase in (
+            "最短充分答案",
+            "核心问题答完就停",
+            "删掉这一项会不会妨碍用户理解核心结论",
+            "不把短问题自动升级成完整论文摘要",
+            "复杂任务不套固定长度",
+            "完整性优先",
+        ):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, context)
+
+    def test_reminder_keeps_answer_scope_visible(self):
+        self.run_hook(session="sess_scope_reminder")
+        payload = self.run_hook(session="sess_scope_reminder")
+        context = self.context(payload)
+        self.assertIn("概念性「为什么/是什么」先给最短充分答案", context)
+        self.assertIn("核心问题答完就停", context)
+        self.assertIn("复杂任务不套固定长度", context)
+
 
 class TestInjectionBehavior(HumanizeHookTestCase):
     def test_default_schedule_is_full_on_turns_1_and_5(self):
@@ -166,8 +187,8 @@ class TestVersionRegistration(unittest.TestCase):
         plugin = json.loads((PLUGIN_DIR / ".zcode-plugin" / "plugin.json").read_text(encoding="utf-8"))
         marketplace = json.loads((PLUGIN_DIR.parent.parent / "marketplace.json").read_text(encoding="utf-8"))
         entry = next(item for item in marketplace["plugins"] if item["name"] == "humanize")
-        self.assertEqual(plugin["version"], "0.4.1")
-        self.assertEqual(entry["version"], "0.4.1")
+        self.assertEqual(plugin["version"], "0.4.2")
+        self.assertEqual(entry["version"], "0.4.2")
 
     def test_rules_file_is_not_empty(self):
         self.assertTrue(RULES.read_text(encoding="utf-8").strip())
