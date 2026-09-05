@@ -1,6 +1,6 @@
 {
   "name": "skill-stats",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "统计每个技能（skill）被触发的次数，并区分触发来源——用户输入 /技能名 触发，还是 agent 主动选择调用；用 /skill-stats 查看统计表。",
   "description_i18n": {
     "en": "Counts how often each skill is triggered and tells who triggered it — the user typing /skill-name, or the agent choosing it on its own; view the table with /skill-stats.",

@@ -12,7 +12,7 @@ description: 查看技能触发次数统计，区分用户输入 /技能名 触�
 1. 运行统计脚本（它读事件日志、打印 markdown 表格）：
 
    ```bash
-   python "${CLAUDE_SKILL_DIR}/../../hooks/skill_stats.py" --report
+   python3 "${CLAUDE_SKILL_DIR}/../../hooks/skill_stats.py" --report || python "${CLAUDE_SKILL_DIR}/../../hooks/skill_stats.py" --report || py -3 "${CLAUDE_SKILL_DIR}/../../hooks/skill_stats.py" --report
    ```
 
    若 `${CLAUDE_SKILL_DIR}` 未展开成绝对路径：技能清单里标注了本 SKILL.md 的绝对路径，向上两级是插件根目录，脚本在插件根目录的 `hooks/skill_stats.py`。

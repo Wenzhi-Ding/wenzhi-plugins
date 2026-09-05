@@ -55,7 +55,7 @@ python plugins/humanize/tests/test_humanize.py
 
 - ZCode
 - 本机可运行 `bash`（macOS/Linux 自带；Windows 用 Git Bash，ZCode 在 Windows 本身依赖它）——humanize 需要
-- 本机可运行 `python`（Python 3）——skill-stats 需要
+- 本机已安装 Python 3——skill-stats 会依次尝试 `python3`、`python` 和 Windows 的 `py -3`
 
 步骤：
 

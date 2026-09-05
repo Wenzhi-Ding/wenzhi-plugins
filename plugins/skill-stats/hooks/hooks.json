@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python \"${ZCODE_PLUGIN_ROOT}/hooks/skill_stats.py\" slash-prompt",
+            "command": "python3 \"${ZCODE_PLUGIN_ROOT}/hooks/skill_stats.py\" slash-prompt || python \"${ZCODE_PLUGIN_ROOT}/hooks/skill_stats.py\" slash-prompt || py -3 \"${ZCODE_PLUGIN_ROOT}/hooks/skill_stats.py\" slash-prompt",
             "timeoutMs": 5000,
             "statusMessage": "skill-stats: 记录斜杠输入"
           }
@@ -19,7 +19,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python \"${ZCODE_PLUGIN_ROOT}/hooks/skill_stats.py\" skill-call",
+            "command": "python3 \"${ZCODE_PLUGIN_ROOT}/hooks/skill_stats.py\" skill-call || python \"${ZCODE_PLUGIN_ROOT}/hooks/skill_stats.py\" skill-call || py -3 \"${ZCODE_PLUGIN_ROOT}/hooks/skill_stats.py\" skill-call",
             "timeoutMs": 5000,
             "statusMessage": "skill-stats: 记录技能调用"
           }

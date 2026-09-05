@@ -28,15 +28,15 @@ pending 标记让「用户输入 /X → agent 跟着调用 Skill(X)」只计一�
 
 ## 依赖与可靠性
 
-- 钩子脚本用 `python` 运行（Windows 下 ZCode 的 command 钩子走 cmd.exe + 系统 PATH，已验证可解析到 Python 3）。
+- 钩子依次尝试 `python3`、`python`、Windows Python Launcher 的 `py -3`，使用本机可用的 Python 3；不要求用户创建命令别名。
 - 宿主把单行 JSON 写进 stdin 后不关管道，脚本用 `readline()` 读一行即返回，不依赖 EOF。
 - 脚本任何异常都静默 exit 0，统计功能不阻塞会话；诊断写 stderr。
 
 ## 测试
 
 ```bash
-python plugins/skill-stats/tests/test_skill_stats.py   # 单元测试（38 个用例）
-python plugins/skill-stats/tests/smoke_test.py         # 冒烟测试（子进程模拟宿主调用，含 stdin 不关管道场景）
+python3 plugins/skill-stats/tests/test_skill_stats.py   # 单元测试（38 个用例）
+python3 plugins/skill-stats/tests/smoke_test.py         # 冒烟测试（执行 hooks.json，覆盖解释器回退与 stdin 不关管道）
 ```
 
 手动冒烟（模拟宿主调用）：
@@ -44,8 +44,8 @@ python plugins/skill-stats/tests/smoke_test.py         # 冒烟测试（子进�
 ```bash
 cd plugins/skill-stats
 export SKILL_STATS_DIR=/tmp/skill-stats-test
-echo '{"prompt":"/mail 帮我聚合","session_id":"sess_demo"}' | python hooks/skill_stats.py slash-prompt
-echo '{"tool_input":{"skill":"mail","args":"帮我聚合"},"session_id":"sess_demo"}' | python hooks/skill_stats.py skill-call
-echo '{"tool_input":{"skill":"sum-paper"},"session_id":"sess_demo"}' | python hooks/skill_stats.py skill-call
-python hooks/skill_stats.py --report    # mail 应记 1 次用户触发，sum-paper 记 1 次 agent 触发
+echo '{"prompt":"/mail 帮我聚合","session_id":"sess_demo"}' | python3 hooks/skill_stats.py slash-prompt
+echo '{"tool_input":{"skill":"mail","args":"帮我聚合"},"session_id":"sess_demo"}' | python3 hooks/skill_stats.py skill-call
+echo '{"tool_input":{"skill":"sum-paper"},"session_id":"sess_demo"}' | python3 hooks/skill_stats.py skill-call
+python3 hooks/skill_stats.py --report    # mail 应记 1 次用户触发，sum-paper 记 1 次 agent 触发
 ```
