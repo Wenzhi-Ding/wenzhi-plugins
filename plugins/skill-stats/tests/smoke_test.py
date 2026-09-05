@@ -28,7 +28,7 @@ def hook_command(event_name):
     return command.replace("${ZCODE_PLUGIN_ROOT}", str(PLUGIN_ROOT))
 
 
-def run_command(command, payload, env, keep_stdin_open=False):
+def run_command(command, payload, env, keep_stdin_open=False, expected_code=0):
     proc = subprocess.Popen(
         command,
         shell=True,
@@ -50,7 +50,7 @@ def run_command(command, payload, env, keep_stdin_open=False):
     else:
         out, err = proc.communicate(timeout=8)
     elapsed = time.monotonic() - started
-    assert proc.returncode == 0, f"退出码 {proc.returncode}，stderr：{err!r}"
+    assert proc.returncode == expected_code, f"退出码 {proc.returncode}，stderr：{err!r}"
     assert elapsed < 5, f"耗时 {elapsed:.1f}s，超出预期"
     return out
 
@@ -65,23 +65,11 @@ def run_hook(mode, payload, data_dir, keep_stdin_open=False, extra_env=None):
     )
 
 
-def interpreter_command(script, *args):
-    quoted_script = shlex.quote(str(script))
-    quoted_args = " ".join(shlex.quote(arg) for arg in args)
-    suffix = f" {quoted_args}" if quoted_args else ""
-    return (
-        f"python3 {quoted_script}{suffix} || "
-        f"python {quoted_script}{suffix} || "
-        f"py -3 {quoted_script}{suffix}"
-    )
-
-
-def run_report(data_dir, extra_env=None):
+def run_report(data_dir):
     out = subprocess.run(
-        interpreter_command(SCRIPT, "--report"),
-        shell=True,
+        [sys.executable, str(SCRIPT), "--report"],
         capture_output=True,
-        env=clean_env(data_dir, extra_env),
+        env=clean_env(data_dir),
         timeout=8,
     )
     assert out.returncode == 0, out.stderr
@@ -165,9 +153,8 @@ def main():
         assert after == before, "非技能输入或坏载荷产出了事件"
         print("3. 非技能输入与坏载荷：通过")
 
-        hooks_text = HOOKS_FILE.read_text(encoding="utf-8")
-        assert "python3" in hooks_text and "python " in hooks_text and "py -3" in hooks_text
-        assert hooks_text.count("${ZCODE_PLUGIN_ROOT}/hooks/skill_stats.py") == 6
+        commands = [hook_command("UserPromptSubmit"), hook_command("PreToolUse")]
+        assert all("python3" in command and "python " in command and "py -3" in command for command in commands)
         print("4. 解释器回退配置：通过")
 
         for command_name in ("python", "py"):
@@ -185,6 +172,18 @@ def main():
             recorded = (fallback_data / "events.jsonl").read_text(encoding="utf-8")
             assert f'"skill": "{command_name}"' in recorded
         print("5. python 与 py -3 回退路径：通过")
+
+        missing_bin = root / "bin-missing"
+        missing_bin.mkdir()
+        missing_data = root / "data-missing"
+        run_command(
+            hook_command("PreToolUse"),
+            {"tool_input": {"skill": "missing"}, "session_id": "fallback"},
+            clean_env(missing_data, {"PATH": str(missing_bin)}),
+            expected_code=127,
+        )
+        assert not (missing_data / "events.jsonl").exists()
+        print("6. 全部解释器缺失时明确失败且不写事件：通过")
 
     print("冒烟测试全部通过。")
 
