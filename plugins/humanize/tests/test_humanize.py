@@ -104,6 +104,8 @@ class TestRuleRegression(HumanizeHookTestCase):
             "不直译",
             "不写翻译腔",
             "保证信息充分的前提下尽可能简洁",
+            "中间步骤",
+            "不靠删推理步骤",
         ):
             with self.subTest(phrase=phrase):
                 self.assertIn(phrase, context)
@@ -140,6 +142,7 @@ class TestInjectionBehavior(HumanizeHookTestCase):
         self.assertIn("规则文件缺失或为空", first["systemMessage"])
         self.assertIsNone(second)
 
+    @unittest.skipIf(shutil.which("node") is None, "node 不可用（open_stdin 探针依赖 node）")
     def test_open_stdin_does_not_hang(self):
         payload = self.run_hook(session="sess_open_stdin", keep_stdin_open=True)
         self.assertTrue(self.context(payload).startswith("【说人话要求】"))
@@ -156,8 +159,7 @@ class TestVersionRegistration(unittest.TestCase):
         plugin = json.loads((PLUGIN_DIR / ".zcode-plugin" / "plugin.json").read_text(encoding="utf-8"))
         marketplace = json.loads((PLUGIN_DIR.parent.parent / "marketplace.json").read_text(encoding="utf-8"))
         entry = next(item for item in marketplace["plugins"] if item["name"] == "humanize")
-        self.assertEqual(plugin["version"], "0.8.1")
-        self.assertEqual(entry["version"], "0.8.1")
+        self.assertEqual(plugin["version"], entry["version"])
 
     def test_rules_file_is_not_empty(self):
         self.assertTrue(RULES.read_text(encoding="utf-8").strip())

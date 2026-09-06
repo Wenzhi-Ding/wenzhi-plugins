@@ -57,7 +57,7 @@ if [ -r "$RULES_FILE" ]; then
   rules="$(tr -d '\r' < "$RULES_FILE")"
 fi
 if [ -z "$rules" ]; then
-  err "规则文件缺失或为空：$RULES_FILE，本轮未注入说人话规则。"
+  err "规则文件缺失或为空：${RULES_FILE}，本轮未注入说人话规则。"
   session_key="${ZCODE_SESSION_ID:-${CLAUDE_SESSION_ID:-}}"
   session_key="$(printf '%s' "$session_key" | tr -cd 'A-Za-z0-9_-')"
   [ -n "$session_key" ] || session_key="shared"
