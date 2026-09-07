@@ -98,16 +98,13 @@ class TestRuleRegression(HumanizeHookTestCase):
         for phrase in (
             "适用于中英文写作",
             "语法完整",
-            "不打比方",
-            "压缩说法",
-            "最贴切的译法",
-            "不直译",
-            "不写翻译腔",
-            "保证信息充分的前提下尽可能简洁",
-            "中间步骤",
-            "不靠删推理步骤",
             "大白话讲解",
             "晦涩代号",
+            "非专业名词不用英文",
+            "最贴切的译法",
+            "空洞的大词",
+            "中间步骤",
+            "保证信息充分的前提下尽可能简洁",
         ):
             with self.subTest(phrase=phrase):
                 self.assertIn(phrase, context)

@@ -10,7 +10,7 @@
         "en": "Injects plain-speech rules into Chinese and English writing: complete sentences; causation stated directly, without metaphors or coined compressions; foreign terms rendered by their most fitting meaning, not word-for-word; no hollow buzzwords; explanations keep every intermediate step the reader needs—concision cuts redundancy, not reasoning steps; as concise as possible while keeping the information sufficient. Applies to chat replies and drafted artifacts.",
         "zh-CN": "向中英文写作注入「说人话」要求：句子语法完整；因果直说不打比方、不自造压缩说法；外文名词按意思取最恰当译法、不写翻译腔；不用空洞大词；解释不省略理解所必需的中间步骤，简洁删冗余不删推理步骤；保证信息充分的前提下尽可能简洁。会话回复和起草的产出物都适用。"
       },
-      "version": "0.8.5",
+      "version": "0.9.0",
       "author": {
         "name": "Wenzhi Ding",
         "url": "https://github.com/Wenzhi-Ding"
