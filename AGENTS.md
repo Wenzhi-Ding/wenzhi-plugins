@@ -1,8 +1,9 @@
 # wenzhi-plugins — agent rules
 
 ## 发布
+- **版本号 bump 与发版仅在用户明确指令时执行**：日常修改只 commit + push，不动 `plugin.json` 与 `marketplace.json` 的版本号；用户下令发版时才统一 bump（并按需打标签、走生效链）。
 - 开始发布前先运行 `command -v gh`、`gh auth status`，并检查 `git config --get user.name`、`git config --get user.email`。缺少 `gh`、未登录、身份为空或邮箱为 `<hostname>.local` 时，在 commit/tag 前处理；不把这些依赖留到 push 标签以后才发现。
-- 改插件后同步 bump 两处版本号：`plugins/<name>/.zcode-plugin/plugin.json` 与根 `marketplace.json` 的 `version`，保持一致。
+- 发版时同步 bump 两处版本号：`plugins/<name>/.zcode-plugin/plugin.json` 与根 `marketplace.json` 的 `version`，保持一致。
 - Git 标签与 GitHub Release 标签统一用 `<插件名>-v<版本号>`，如 `humanize-v0.4.1`、`skill-stats-v0.1.0`；这个仓库的各插件独立使用版本号，不创建可能与其他插件冲突的仓库级 `v<版本号>` 标签。创建前同时检查本地和远端标签是否已存在。
 - 生效链：commit + push GitHub → 插件管理里更新该插件 → 新会话加载（hook/插件改动不热加载，验证注入的方法见 zcode-tools 4.3）。交付时提醒用户走完这条链再验收。
 

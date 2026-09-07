@@ -106,8 +106,8 @@ class TestRuleRegression(HumanizeHookTestCase):
             "保证信息充分的前提下尽可能简洁",
             "中间步骤",
             "不靠删推理步骤",
-            "始终用读者可懂的语言",
-            "首次出现即展开",
+            "大白话讲解",
+            "晦涩代号",
         ):
             with self.subTest(phrase=phrase):
                 self.assertIn(phrase, context)
