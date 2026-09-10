@@ -14,7 +14,34 @@ import skill_stats as ss
 
 
 class TestParseSlashName(unittest.TestCase):
-    """桌面端把用户输入的 /技能名 以原文提交，解析全靠 prompt 文本。"""
+    """从 prompt 文本识别用户触发的技能，宿主各端的提交形式都要认。"""
+
+    def test_markdown_link_form(self):
+        # 桌面端把 /mail 提交成指向 SKILL.md 的 Markdown 链接。
+        prompt = "[$mail](/Users/x/.zcode/cli/plugins/cache/wenzhi-plugins/skill-stats/0.1.3/skills/mail/SKILL.md)"
+        self.assertEqual(ss.parse_slash_name(prompt), ("mail", ""))
+
+    def test_markdown_link_form_with_args(self):
+        prompt = "[$mail](/root/skills/mail/SKILL.md) 帮我聚合邮件"
+        self.assertEqual(ss.parse_slash_name(prompt), ("mail", "帮我聚合邮件"))
+
+    def test_markdown_link_form_namespaced_skill(self):
+        prompt = "[$browser-use:control-browser](/root/skills/control-browser/SKILL.md)"
+        self.assertEqual(ss.parse_slash_name(prompt), ("browser-use:control-browser", ""))
+
+    def test_markdown_link_form_relative_path(self):
+        self.assertEqual(ss.parse_slash_name("[$reflect](skills/reflect/SKILL.md)"), ("reflect", ""))
+
+    def test_markdown_link_form_builtin_command_ignored(self):
+        self.assertIsNone(ss.parse_slash_name("[$help](/root/skills/help/SKILL.md)"))
+
+    def test_markdown_link_to_non_skill_file_ignored(self):
+        # 指向别的文件的普通链接不是技能触发。
+        self.assertIsNone(ss.parse_slash_name("[$notes](/Users/x/docs/notes.md)"))
+
+    def test_markdown_link_with_ordinary_link_text_ignored(self):
+        # 链接文字没有 $ 前缀，是聊天里手写的普通链接。
+        self.assertIsNone(ss.parse_slash_name("[mail](/root/skills/mail/SKILL.md)"))
 
     def test_plain_slash_with_args(self):
         self.assertEqual(ss.parse_slash_name("/mail 帮我聚合邮件"), ("mail", "帮我聚合邮件"))
@@ -287,6 +314,33 @@ class TestReport(SkillStatsTestCase):
         out = ss.report(self.dir)
         self.assertIn("mail", out)
         self.assertIn("未跟进", out)
+
+    def test_namespaced_names_share_one_row(self):
+        # 用户输入 /skill-stats（原名），agent 调 Skill("skill-stats:skill-stats")：
+        # 两行必须合并成一行，否则「未跟进」会把这条记成没跟上。
+        ss.handle_slash_prompt(
+            {"prompt": "[$skill-stats](/root/skills/skill-stats/SKILL.md)", "session_id": "s1"},
+            self.dir, now=self.NOW,
+        )
+        ss.handle_skill_call(
+            {"tool_input": {"skill": "skill-stats:skill-stats"}, "session_id": "s1"},
+            self.dir, now=self.NOW + 1,
+        )
+        out = ss.report(self.dir)
+        self.assertIn("| skill-stats | 1 | 0 | 1 |", out)
+        self.assertNotIn("skill-stats:skill-stats", out)
+        self.assertNotIn("未跟进", out)
+
+    def test_markdown_link_intent_counts_as_user(self):
+        ss.handle_slash_prompt(
+            {"prompt": "[$reflect](/root/skills/reflect/SKILL.md)", "session_id": "s1"},
+            self.dir, now=self.NOW,
+        )
+        rec = ss.handle_skill_call(
+            {"tool_input": {"skill": "reflect"}, "session_id": "s1"},
+            self.dir, now=self.NOW + 2,
+        )
+        self.assertEqual(rec["source"], "user")
 
 
 if __name__ == "__main__":

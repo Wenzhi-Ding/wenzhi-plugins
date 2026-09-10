@@ -3,15 +3,14 @@
 
 两类事件（hooks.json 里各注册一个钩子，均调用本脚本）：
 
-- ``slash-prompt``：UserPromptSubmit。桌面端把用户输入的 ``/技能名 参数`` 以原文提交，
-  这里从 prompt 解析技能名，写下 pending 标记（按会话+技能名，含时间戳），
-  并往事件日志追加一条 slash_prompt 意向记录。
+- ``slash-prompt``：UserPromptSubmit。宿主提交用户输入时，这里从 prompt 解析技能名，
+  写下 pending 标记（按会话+技能名，含时间戳），并往事件日志追加一条 slash_prompt 意向记录。
 - ``skill-call``：PreToolUse（matcher 为 Skill）。读取 tool_input.skill，
   查同会话同名 pending 标记：有新鲜标记则消费掉、来源记 user，否则记 agent，
   然后追加一条 skill_call 事件。
 
-这样用户输入 /X 后 agent 跟着调用 Skill(X) 的桌面端固定流程只计一次且归为用户；
-/agent 自行选择调用的 Skill 则归为 agent。
+这样用户输入 /X 后 agent 跟着调用 Skill(X) 的固定流程只计一次且归为用户；
+agent 自行选择调用的 Skill 则归为 agent。
 
 另提供 ``--report`` 读取事件日志并打印统计表（/skill-stats 技能用它展示）。
 
@@ -44,6 +43,12 @@ _SKILL_INSTRUCTION_RE = re.compile(r"Use the skill named `([\w:.-]+)`")
 _SKILL_REQUEST_RE = re.compile(r"(?:^|\n)User request:\n(.*)$", re.DOTALL)
 # 带 <command-name> 标签的形式（部分客户端把技能内容连同标签一起塞进 prompt）。
 _COMMAND_TAG_RE = re.compile(r"<command-name>([\w:.-]+)</command-name>(.*)$", re.DOTALL)
+# 桌面端（GUI）形式：用户输入 /mail 后宿主提交的是指向 SKILL.md 的 Markdown 链接，
+# 形如「[$mail](/path/to/skills/mail/SKILL.md)」，链接文字带 $ 前缀，参数跟在链接之后。
+# 目标路径必须以 SKILL.md 收尾，避免把普通的 [$词](链接) 误判成技能触发。
+_MD_LINK_RE = re.compile(
+    r"^\s*\[\$([\w:.-]+)\]\(([^)\s]*/)?SKILL\.md\)(?:\s+(.*))?$", re.DOTALL
+)
 
 
 def truncate(text, limit=120):
@@ -67,11 +72,18 @@ def _split_name_args(text):
 def parse_slash_name(prompt):
     """从 UserPromptSubmit 的 prompt 文本识别用户触发的技能，返回 (技能名, 参数) 或 None。
 
-    覆盖四种形式：桌面端原文 /mail 参数、CLI 自定义命令展开、CLI /skill 指令、
-    <command-name> 标签。内置命令与 Unix 路径返回 None。
+    覆盖五种形式：桌面端 Markdown 链接、桌面端/CLI 原文 /mail 参数、CLI 自定义命令展开、
+    CLI /skill 指令、<command-name> 标签。内置命令与 Unix 路径返回 None。
     """
     if not prompt:
         return None
+
+    m = _MD_LINK_RE.match(prompt)
+    if m:
+        name = m.group(1).lower()
+        if name in BUILTIN_COMMANDS:
+            return None
+        return name, truncate(m.group(3) or "")
 
     m = _RAW_SLASH_RE.match(prompt)
     if m:
@@ -238,12 +250,15 @@ def report(data_dir):
         skill = e.get("skill")
         if not skill:
             continue
+        # 按裸名归并：用户输入 /X 记的是原名，Skill 调用记的可能是插件命名空间名
+        # （browser-use:control-browser），不归并会让同一技能拆成两行。
+        key = _bare(skill)
         if e.get("event") == "skill_call":
-            slot = calls.setdefault(skill, {"user": 0, "agent": 0, "last": ""})
+            slot = calls.setdefault(key, {"user": 0, "agent": 0, "last": ""})
             slot["user" if e.get("source") == "user" else "agent"] += 1
             slot["last"] = max(slot["last"], e.get("t") or "")
         elif e.get("event") == "slash_prompt":
-            intents[skill] = intents.get(skill, 0) + 1
+            intents[key] = intents.get(key, 0) + 1
 
     if not calls and not intents:
         return "暂无技能触发记录。"

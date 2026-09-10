@@ -2,7 +2,7 @@
   "hooks": {
     "UserPromptSubmit": [
       {
-        "matcher": "^/|^Run custom command /|Use the skill named|<command-name>",
+        "matcher": "^\\s*/|^\\s*Run custom command /|Use the skill named|<command-name>|^\\s*\\[\\$",
         "hooks": [
           {
             "type": "command",

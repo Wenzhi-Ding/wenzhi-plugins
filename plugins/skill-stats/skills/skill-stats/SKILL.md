@@ -26,3 +26,4 @@ description: 查看技能触发次数统计，区分用户输入 /技能名 触�
 - 事件日志在 `~/.zcode/skill-stats/events.jsonl`，每行一条事件：`slash_prompt` 是用户输入 `/技能名` 的意向记录，`skill_call` 是一次实际的 Skill 工具调用（含 source 字段区分 user/agent）。
 - 判定逻辑：用户输入 `/X` 后 10 分钟内同会话出现 `Skill(X)` 调用，这次调用记为 user；其余 Skill 调用记为 agent。
 - 表格末尾的「未跟进」区段列出用户输入了但 agent 没有发起对应调用的次数，多是 agent 先反问或会话中断导致。
+- 表格按技能裸名归并，即 `browser-use:control-browser` 与 `control-browser` 算同一行。
