@@ -106,12 +106,7 @@ class TestRuleRegression(HumanizeHookTestCase):
             "空洞的大词",
             "中间步骤",
             "保证信息充分的前提下尽可能简洁",
-            "指代明确",
-            "容易指向多个对象的词",
-            "对哪个量做什么操作",
-            "不同含义不共用一个简称",
-            "代词指代不明就补全",
-            "必要的技术术语照用",
+            "在语境中容易造成歧义的词，写清楚主体和客体。",
         ):
             with self.subTest(phrase=phrase):
                 self.assertIn(phrase, context)
