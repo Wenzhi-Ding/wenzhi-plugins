@@ -10,18 +10,6 @@ ZCode 插件市场。在 ZCode 的插件管理里添加本仓库即可一键安�
 
 详见 [plugins/humanize/README.md](plugins/humanize/README.md)。
 
-### model-providers
-
-各家模型厂商在 ZCode 里的正确配置（端点、协议 kind、reasoning 档位、参数怪癖）的结构化 registry。安装后跑 `/providers-sync`，本机 `~/.zcode/v2/config.json` 的 provider 配置就与验证过的经验对齐；API key 自己粘贴，仓库中永远不出现。
-
-- `/providers-sync`：状态总览，不写入。
-- `/providers-sync grok qwen`：按 name 或 alias 选择性同步。
-- `/providers-sync all`：全部同步。
-
-收录：Kimi、DeepSeek、B.AI、MiniMax、Grok、Qwen、OpenCode（Claude/GPT 两条目）。同步只动 `baseURL`、`kind`、`models`，不动你自己的 key 和自己加的模型。
-
-详见 [plugins/model-providers/README.md](plugins/model-providers/README.md)。
-
 ### skill-stats
 
 统计每个技能（skill）被触发的次数，并区分触发来源：你在输入框敲 `/技能名` 触发，还是 agent 在任务中主动选择调用。在会话里输入 `/skill-stats` 查看统计表。数据存在 `~/.zcode/skill-stats/`，`~/.zcode/skill-stats-off` 文件存在时停止记录。
