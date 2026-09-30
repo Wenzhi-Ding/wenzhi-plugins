@@ -4,14 +4,23 @@
 
 ## 原理
 
-桌面端把用户输入的 `/mail 帮我…` 以原文提交给模型，模型再调用 `Skill` 工具加载技能。所以一次用户触发会先后产生两个可观测事件，插件各注册一个钩子：
+用户输入 `/mail 帮我…` 后，模型会调用 `Skill` 工具加载技能，所以一次用户触发先后产生两个可观测事件，插件各注册一个钩子：
 
-| 钩子 | matcher | 作用 |
-| --- | --- | --- |
-| UserPromptSubmit | `^/|^Run custom command /|Use the skill named|<command-name>` | 解析技能名，写 pending 标记（按会话+技能名，含时间戳），并记录一条 `slash_prompt` 意向事件 |
-| PreToolUse | `^Skill$` | 记录 `skill_call` 事件；同会话同名标记在 10 分钟内存在则消费标记、来源记 `user`，否则记 `agent` |
+| 钩子 | 作用 |
+| --- | --- |
+| UserPromptSubmit | 从提交文本解析技能名，写 pending 标记（按会话+技能名，含时间戳），并记录一条 `slash_prompt` 意向事件 |
+| PreToolUse | 记录 `skill_call` 事件；同会话同名标记在 10 分钟内存在则消费标记、来源记 `user`，否则记 `agent` |
 
-pending 标记让「用户输入 /X → agent 跟着调用 Skill(X)」只计一次且归为用户；agent 在任务中自行选择调用的技能则归为 agent。matcher 让普通消息和无关工具调用完全不触发脚本。以斜杠开头的 Unix 路径（如 `/home/...`）在解析阶段就被丢弃，不会进入统计。
+两个钩子的 matcher（与 `hooks/hooks.json` 一致）：
+
+```
+UserPromptSubmit: ^\s*/|^\s*Run custom command /|Use the skill named|<command-name>|^\s*\[$
+PreToolUse:       ^Skill$
+```
+
+UserPromptSubmit 侧解析五种提交形态：桌面端提交的 Markdown 链接（形如 `[$mail](…/skills/mail/SKILL.md)`）、斜杠原文 `/mail 参数`、CLI 自定义命令展开（`Run custom command /mail.`）、CLI `/skill` 指令和 `<command-name>` 标签。内置命令（`/compact`、`/model` 等）不是技能，以斜杠开头的 Unix 路径（如 `/home/...`）在解析阶段就被丢弃，两者都不进入统计。
+
+pending 标记让「用户输入 /X → agent 跟着调用 Skill(X)」只计一次且归为用户；agent 在任务中自行选择调用的技能则归为 agent。matcher 让普通消息和无关工具调用完全不触发脚本。
 
 ## 存储
 
@@ -35,7 +44,7 @@ pending 标记让「用户输入 /X → agent 跟着调用 Skill(X)」只计一�
 ## 测试
 
 ```bash
-python3 plugins/skill-stats/tests/test_skill_stats.py   # 单元测试（38 个用例）
+python3 plugins/skill-stats/tests/test_skill_stats.py   # 单元测试（47 个用例）
 python3 plugins/skill-stats/tests/smoke_test.py         # 冒烟测试（执行 hooks.json，覆盖解释器回退与 stdin 不关管道）
 ```
 

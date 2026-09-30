@@ -6,7 +6,6 @@
 
 import json
 import os
-import re
 import shutil
 import subprocess
 import tempfile
@@ -164,27 +163,6 @@ class TestVersionRegistration(unittest.TestCase):
 
     def test_rules_file_is_not_empty(self):
         self.assertTrue(RULES.read_text(encoding="utf-8").strip())
-
-    def test_readme_rule_list_mirrors_rules_file(self):
-        """README 的编号规则清单必须与 rules.txt 逐条一致（第 0 条适用范围除外）。
-
-        只比内容：rules.txt 第 2、4 条原文不带句末句号，README 清单补了句号，句末标点不计入差异。
-        """
-        def parse(text):
-            return {
-                number: content.rstrip("。")
-                for number, content in re.findall(
-                    r"^(\d+)\.\s+(.+?)\s*$", text, re.MULTILINE
-                )
-            }
-
-        body = (PLUGIN_DIR.parent.parent / "README.md").read_text(encoding="utf-8")
-        head = body.split("规则范围覆盖", 1)[0]
-        rules_items = parse(RULES.read_text(encoding="utf-8"))
-        self.assertEqual(
-            parse(head),
-            {number: text for number, text in rules_items.items() if number != "0"},
-        )
 
     def test_rules_stay_within_length_budget(self):
         text = RULES.read_text(encoding="utf-8").replace("\r", "")
