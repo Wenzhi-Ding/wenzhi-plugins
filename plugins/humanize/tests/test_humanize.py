@@ -99,6 +99,7 @@ class TestRuleRegression(HumanizeHookTestCase):
             "适用于中英文写作",
             "语法完整",
             "大白话讲解",
+            "因果直说不打比方",
             "晦涩代号",
             "非专业名词不用英文",
             "最贴切的译法",
